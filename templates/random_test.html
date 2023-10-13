@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random Testing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+        }
+
+        input[type="submit"] {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #555;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        a[type='submit']{
+            padding: 8px 15px;
+            font-size: 16px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            border-radius:  6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        /* Conditional styling for Status column */
+        td[status = "Failed"] {
+            background-color: red;
+        }
+
+        td[status="Passed"] {
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Testing</h1>
+
+    <form method="POST">
+        <label for="user_code">Enter your Python function (e.g., def user_function(x, y): return x * y):</label><br>
+        <textarea id="user_code" name="user_code" rows="4" cols="50">{{ request.form.user_code }}</textarea><br>
+
+        <label for="func_name">Enter function name:</label><br>
+        <input type="text" id="func_name" name="func_name" required value="{{ request.form.func_name}}"><br>
+
+        <label for="param_count">Enter the number of parameters for the function:</label><br>
+        <input type="number" id="param_count" name="param_count" min="1" required value="{{ request.form.param_count }}"><br>
+
+        <label for="num_tests">Number of Random Tests:</label><br>
+        <input type="number" id="num_tests" name="num_tests" min="1" required value="{{ request.form.num_tests }}"><br>
+
+        <label for="min_value">Minimum Value:</label><br>
+        <input type="number" id="min_value" name="min_value" required value="{{ request.form.min_value }}"><br>
+
+        <label for="max_value">Maximum Value:</label><br>
+        <input type="number" id="max_value" name="max_value" required value="{{ request.form.max_value }}"><br>
+
+        <label for="data_type">Select Data Type for Assumed and Actual Values:</label><br>
+        <select id="data_type" name="data_type">
+            <option value="int" {% if request.form.data_type == 'int' %}selected{% endif %}>int</option>
+            <option value="float" {% if request.form.data_type == 'float' %}selected{% endif %}>float</option>
+            <option value="bool" {% if request.form.data_type == 'bool' %}selected{% endif %}>bool</option>
+            <option value="str" {% if request.form.data_type == 'str' %}selected{% endif %}>str</option>
+        </select><br>
+
+        <input type="submit" value="Run Random Tests">
+        <input type="button" value="Reset Code" onclick="resetCode()">
+        <a href="/"><button type="button">Back to the main page</button></a>
+        
+        <script>
+            function resetCode() {
+                document.getElementById("user_code").value = "";
+            }
+        </script>
+    </form>
+
+
+    <!-- Display the test results here -->
+    <div id="results">
+        {% if results %}
+            <h2>Test Results:</h2>
+            <table>
+                <tr>
+                    <th>Test</th>
+                    <th>Assumed</th>
+                    <th>Actual</th>
+                    <th>Status</th>
+                </tr>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result.Test }}</td>
+                        <td>{{ result.Assumed }}</td>
+                        <td>{{ result.Actual }}</td>
+                        <td status="{{ result.Status }}">{{ result.Status }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+</body>
+</html>
