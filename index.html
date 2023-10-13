@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Function Testing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        form {
+            display: inline-block;
+            text-align: left;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            width: 70%;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        textarea, input[type="number"], input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .number-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .number-buttons button {
+            padding: 8px 15px;
+            font-size: 14px;
+            border: none;
+            background-color: #3498db;
+            color: #fff;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .number-buttons button:hover {
+            background-color: #2980b9;
+        }
+        h2 {
+            margin-top: 20px;
+            color: #333;
+        }
+        #result {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        #generated_test_code {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            text-align: left;
+            margin-top: 15px;
+        }
+        #reset_button {
+            background-color: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 15px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.2s;
+        }
+        #reset_button:hover {
+            background-color: #c0392b;
+        }
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+        button[type="button"] {
+            padding: 8px 15px;
+            font-size: 16px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button[type="button"]:hover {
+            background-color: #555;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Function Testing</h1>
+
+    <!-- The HTML form for user input -->
+    <form method="POST">
+        <!-- Input for the Python function code -->
+        <label for="input_function">Enter a function:</label><br>
+        <textarea id="input_function" name="input_function" rows="4" cols="50">{{ request.form.input_function }}</textarea><br>
+
+        <!-- Input for the function name -->
+        <label for="func_name">Enter function name:</label><br>
+        <input type="text" id="func_name" name="func_name" value="{{ request.form.func_name }}" required><br>
+
+        <!-- Dropdown for selecting the return type -->
+        <label for="return_type">Select return type:</label><br>
+        <select id="return_type" name="return_type">
+            <option value="int" {% if request.form.return_type == "int" %}selected="selected"{% endif %}>int</option>
+            <option value="float" {% if request.form.return_type == "float" %}selected="selected"{% endif %}>float</option>
+            <option value="bool" {% if request.form.return_type == "bool" %}selected="selected"{% endif %}>bool</option>
+            <option value="str" {% if request.form.return_type == "str" %}selected="selected"{% endif %}>str</option>
+            <option value="list" {% if request.form.return_type == "list" %}selected="selected"{% endif %}>list</option>
+        </select><br>
+
+        <!-- Input for the number of parameters -->
+        <label for="param_count">Enter the number of parameters for the function:</label><br>
+        <input type="number" id="param_count" name="param_count" min="1" value="{{ request.form.param_count }}" required><br>
+
+        <!-- Dynamic input fields for parameters (added using JavaScript) -->
+        <div id="param_input_fields">
+        </div>
+
+        <!-- Input for the expected output (or list elements, comma-separated) -->
+        <label for="expected_result">Enter the expected output (or list elements, comma-separated):</label><br>
+        <input type="text" id="expected_result" name="expected_result" required><br>
+
+        <!-- Submit button to test the function -->
+        <input type="submit" value="Test Function">
+
+
+
+        <!-- Button to reset the form -->
+        <button type="button" id="reset_button">Reset</button>
+        <a class="button" href="http://127.0.0.1:5000/random_test.html">Random Testing</a>
+<!--        <button type="button" id="reset_button">Reset</button>-->
+    </form>
+
+    <!-- Display test results (will be populated by Flask) -->
+    <h2>Test Results:</h2>
+    <pre id="result">{{ result }}</pre>
+
+    <!-- Display generated test code if available (will be populated by Flask) -->
+    {% if generated_test_code %}
+        <h2>Generated Test Code:</h2>
+        <pre id="generated_test_code">{{ generated_test_code }}</pre>
+    {% endif %}
+
+    <script>
+        document.getElementById("param_count").addEventListener("change", function () {
+            const numParams = parseInt(this.value);
+            const paramInputFields = document.getElementById("param_input_fields");
+            paramInputFields.innerHTML = "";
+
+            for (let i = 0; i < numParams; i++) {
+                const inputLabel = document.createElement("label");
+                inputLabel.textContent = `Enter input parameter ${i + 1}:`;
+                const inputField = document.createElement("input");
+                inputField.type = "text";
+                inputField.name = `param_${i}`;
+                inputField.required = true;
+
+                // Create a dropdown for parameter type (e.g., int, float, str, list)
+                const paramTypeSelect = document.createElement("select");
+                paramTypeSelect.name = `param_${i}_type`;
+                paramTypeSelect.required = true;
+                const paramTypes = ["int", "float", "str", "bool", "list"];
+                for (const paramType of paramTypes) {
+                    const option = document.createElement("option");
+                    option.value = paramType;
+                    option.text = paramType;
+                    paramTypeSelect.appendChild(option);
+                }
+
+                paramInputFields.appendChild(inputLabel);
+                paramInputFields.appendChild(document.createElement("br"));
+                paramInputFields.appendChild(inputField);
+                paramInputFields.appendChild(paramTypeSelect); // Add parameter type dropdown
+                paramInputFields.appendChild(document.createElement("br"));
+            }
+        });
+
+        document.getElementById("reset_button").addEventListener("click", function () {
+            document.getElementById("input_function").value = "";
+            document.getElementById("func_name").value = "";
+            document.getElementById("return_type").value = "int";
+            document.getElementById("param_count").value = "";
+            document.getElementById("param_input_fields").innerHTML = "";
+            document.getElementById("expected_result").value = "";
+            document.getElementById("result").textContent = "";
+            document.getElementById("generated_test_code").textContent = "";
+        });
+    </script>
+</body>
+</html>
